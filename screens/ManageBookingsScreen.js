@@ -23,18 +23,19 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
 import Loader from "../components/Loader";
+import theme from "../theme";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDashboard } from "../redux/slices/DashboardSlice";
 import * as XLSX from "xlsx";
 import { Image, TouchableOpacity } from "react-native";
 
-const rowsPerPageOptions = [2, 3, 5];
+const rowsPerPageOptions = [5, 10];
 
 const ManageBookingsScreen = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(2);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
 
@@ -96,7 +97,7 @@ const ManageBookingsScreen = () => {
     <Loader />
   ) : (
     <>
-      <PaperProvider>
+      <PaperProvider theme={theme}>
         <ScrollView contentContainerStyle={styles.page}>
           {/* Data Table Card */}
           <Card style={styles.card} mode="contained">
@@ -163,7 +164,12 @@ const ManageBookingsScreen = () => {
                       Date & Time
                     </DataTable.Title>
                   </DataTable.Header>
-                  {paginatedBookings.map((item, index) => (
+                  {paginatedBookings.length === 0 ? (
+                    <View style={{ padding: 20, alignItems: 'center' }}>
+                      <Text style={{ color: '#666', fontSize: 16 }}>No bookings found</Text>
+                    </View>
+                  ) : (
+                    paginatedBookings.map((item, index) => (
                     <DataTable.Row key={item.id} style={styles.row}>
                       <DataTable.Cell style={styles.cell}>
                         {page * rowsPerPage + index + 1}
@@ -190,7 +196,8 @@ const ManageBookingsScreen = () => {
                         {item.date}
                       </DataTable.Cell>
                     </DataTable.Row>
-                  ))}
+                  )))
+                  }
                   <DataTable.Pagination
                     page={page}
                     numberOfPages={Math.ceil(
@@ -201,10 +208,6 @@ const ManageBookingsScreen = () => {
                       (page + 1) * rowsPerPage,
                       filteredBookings.length
                     )} of ${filteredBookings.length}`}
-                    numberOfItemsPerPage={rowsPerPage}
-                    onItemsPerPageChange={setRowsPerPage}
-                    numberOfItemsPerPageList={rowsPerPageOptions}
-                    selectPageDropdownLabel="Rows per page"
                     showFastPaginationControls
                   />
                 </DataTable>

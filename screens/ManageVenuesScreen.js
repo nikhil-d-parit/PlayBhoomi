@@ -25,14 +25,15 @@ import Toast from "react-native-toast-message";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation,useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchVenues, deleteVenue } from "../redux/slices/VenuesSlice";
+import { fetchVenues, toggleVenueStatus } from "../redux/slices/VenuesSlice";
 import { fetchVendors } from "../redux/slices/VenderSlice";
 import Loader from "../components/Loader";
+import theme from "../theme";
 import moment from "moment";
 import * as XLSX from 'xlsx';
 import { Image, TouchableOpacity } from 'react-native';
 
-const rowsPerPageOptions = [2, 3, 5];
+const rowsPerPageOptions = [5, 10];
 
 const ManageVenuesScreen = () => {
   const navigation = useNavigation();
@@ -41,7 +42,7 @@ const ManageVenuesScreen = () => {
   const { vendors } = useSelector((state) => state.vender);
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(2);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const { width } = useWindowDimensions();
 
   useFocusEffect(
@@ -79,6 +80,7 @@ const ManageVenuesScreen = () => {
         VendorName: venue.vendorName,
         Phone: venue.phone,
         Courts: Array.isArray(venue.courts) ? venue.courts.join(', ') : '-',
+        Status: venue.isSuspended === 1 ? 'Inactive' : 'Active',
         CreatedAt: venue.createdAt ? moment(venue.createdAt).format('YYYY-MM-DD HH:mm') : '-',
       }));
       const ws = XLSX.utils.json_to_sheet(exportData);
@@ -124,7 +126,7 @@ const ManageVenuesScreen = () => {
   }
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={theme}>
       <ScrollView contentContainerStyle={styles.page}>
         <Card style={styles.card} mode="contained">
           <Card.Content>
@@ -188,6 +190,9 @@ const ManageVenuesScreen = () => {
                   <DataTable.Title style={styles.headerCell}>
                     Created At
                   </DataTable.Title>
+                  <DataTable.Title style={styles.headerCell}>
+                    Status
+                  </DataTable.Title>
                 </DataTable.Header>
 
                 {paginatedVenues.map((venue, index) => (
@@ -223,8 +228,28 @@ const ManageVenuesScreen = () => {
                     <DataTable.Cell style={styles.cell}>
                       {venue.createdAt ? moment(venue.createdAt).format("YYYY-MM-DD HH:mm") : "-"}
                     </DataTable.Cell>
+                    <DataTable.Cell style={styles.cell}>
+                      <Chip 
+                        mode="flat"
+                        style={{ 
+                          backgroundColor: venue.isSuspended === 1 ? '#ffebee' : '#e8f5e9' 
+                        }}
+                        textStyle={{ 
+                          color: venue.isSuspended === 1 ? '#c62828' : '#2e7d32',
+                          fontWeight: 'bold',
+                          fontSize: 12
+                        }}
+                      >
+                        {venue.isSuspended === 1 ? 'Inactive' : 'Active'}
+                      </Chip>
+                    </DataTable.Cell>
                   </DataTable.Row>
                 ))}
+                {paginatedVenues.length === 0 && (
+                  <View style={{ padding: 20, alignItems: 'center' }}>
+                    <Text style={{ color:'#666', fontSize: 16 }}>No venues found</Text>
+                  </View>
+                )}
 
                 <DataTable.Pagination
                   page={page}
@@ -234,10 +259,6 @@ const ManageVenuesScreen = () => {
                     (page + 1) * rowsPerPage,
                     filteredVenues.length
                   )} of ${filteredVenues.length}`}
-                  numberOfItemsPerPage={rowsPerPage}
-                  onItemsPerPageChange={setRowsPerPage}
-                  numberOfItemsPerPageList={rowsPerPageOptions}
-                  selectPageDropdownLabel="Rows per page"
                   showFastPaginationControls
                 />
               </DataTable>
@@ -258,21 +279,36 @@ const GreenActionMenu = ({ venue }) => {
   //console.log("vendors",vendors)
   //console.log("venue", venue);
   const [visible, setVisible] = useState(false);
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const navigation = useNavigation();
   const vendor = vendors.find((v) => v.name === venue.vendorName);
   const vendorId = vendor?.id;
 //  console.log("vendorId",vendorId);
 
   const dispatch = useDispatch();
-  const handleDelete = async () => {
+  
+  const handleToggleStatus = async () => {
     if (vendorId && venue.turfId) {
       try {
-        await dispatch(deleteVenue({ vendorId, turfId: venue.turfId })).unwrap();
-        Toast.show({ type: "success", text1: "Venue deleted successfully" });
-        setDeleteModalVisible(false);
+        const newStatus = venue.isSuspended === 1 ? 0 : 1;
+        await dispatch(
+          toggleVenueStatus({ 
+            vendorId, 
+            turfId: venue.turfId, 
+            isSuspended: newStatus 
+          })
+        ).unwrap();
+        Toast.show({ 
+          type: "success", 
+          text1: newStatus === 1 
+            ? "Turf deactivated successfully" 
+            : "Turf activated successfully" 
+        });
       } catch (err) {
-        Toast.show({ type: "error", text1: "Failed to delete venue", text2: err?.message || "" });
+        Toast.show({ 
+          type: "error", 
+          text1: "Failed to update status", 
+          text2: err?.message || "" 
+        });
       }
     }
   };
@@ -319,25 +355,15 @@ const GreenActionMenu = ({ venue }) => {
         <Menu.Item
           onPress={() => {
             setVisible(false);
-            setDeleteModalVisible(true);
+            handleToggleStatus();
           }}
-          title="Delete"
-          leadingIcon="delete"
-          titleStyle={{ color: "red" }}
+          title={venue.isSuspended === 1 ? "Activate" : "Deactivate"}
+          leadingIcon={venue.isSuspended === 1 ? "check-circle" : "cancel"}
+          titleStyle={{ 
+            color: venue.isSuspended === 1 ? "#2e7d32" : "#f57c00" 
+          }}
         />
       </Menu>
-      <Portal>
-        <Dialog visible={deleteModalVisible} onDismiss={() => setDeleteModalVisible(false)}>
-          <Dialog.Title>Confirm Deletion</Dialog.Title>
-          <Dialog.Content>
-            <Text>Are you sure you want to delete <Text style={{ fontWeight: "bold" }}>{venue.title}</Text>?</Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setDeleteModalVisible(false)}>Cancel</Button>
-            <Button onPress={handleDelete} color="red">Delete</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
     </>
   );
 }

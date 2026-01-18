@@ -24,10 +24,11 @@ import moment from "moment";
 import Loader from "../components/Loader";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUsers } from "../redux/slices/UserSlice";
+import theme from "../theme";
 import * as XLSX from "xlsx";
 import { Image, TouchableOpacity } from "react-native";
 
-const rowsPerPageOptions = [2, 3, 5];
+const rowsPerPageOptions = [5, 10];
 
 const ManageUsersScreen = () => {
   const dispatch = useDispatch();
@@ -35,7 +36,7 @@ const ManageUsersScreen = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(2);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
 
@@ -116,7 +117,7 @@ const ManageUsersScreen = () => {
       {loading ? (
         <Loader />
       ) : (
-        <PaperProvider>
+        <PaperProvider theme={theme}>
           <ScrollView contentContainerStyle={styles.page}>
             <Card style={styles.card} mode="contained">
               <Card.Content>
@@ -204,6 +205,11 @@ const ManageUsersScreen = () => {
                         </DataTable.Cell>
                       </DataTable.Row>
                     ))}
+                    {paginatedUsers.length === 0 && (
+                      <View style={{ padding: 20, alignItems: 'center' }}>
+                        <Text style={{ color: '#666', fontSize: 16 }}>No users found</Text>
+                      </View>
+                    )}
 
                     <DataTable.Pagination
                       page={page}
@@ -215,10 +221,6 @@ const ManageUsersScreen = () => {
                         (page + 1) * rowsPerPage,
                         filteredUsers.length
                       )} of ${filteredUsers.length}`}
-                      numberOfItemsPerPage={rowsPerPage}
-                      onItemsPerPageChange={setRowsPerPage}
-                      numberOfItemsPerPageList={rowsPerPageOptions}
-                      selectPageDropdownLabel="Rows per page"
                       showFastPaginationControls
                     />
                   </DataTable>

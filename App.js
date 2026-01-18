@@ -49,6 +49,7 @@ import EditAmenityScreen from "./screens/EditAmenityScreen";
 import AddRuleScreen from "./screens/AddRuleScreen";
 import EditRuleScreen from "./screens/EditRuleScreen";
 import EditVenueScreen from "./screens/EditVenueScreen";
+import theme from "./theme";
 
 const PlaceholderScreen = ({ title }) => (
   <SafeAreaView
@@ -167,7 +168,7 @@ function AppInner() {
   }, []);
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={theme}>
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName={initialRoute}

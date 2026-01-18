@@ -21,6 +21,7 @@ import {
 } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Loader from "../components/Loader";
+import theme from "../theme";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -30,7 +31,7 @@ import {
   deleteRule,
 } from "../redux/slices/RulesSlice";
 
-const rowsPerPageOptions = [2, 3, 5];
+const rowsPerPageOptions = [5, 10];
 
 const ManageRulesScreen = () => {
   const navigation = useNavigation();
@@ -41,7 +42,7 @@ const ManageRulesScreen = () => {
 
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(2);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [modalVisible, setModalVisible] = useState(false); // For adding/editing rule
   const [ruleText, setRuleText] = useState(""); // New rule input
   const [currentTurfId, setCurrentTurfId] = useState(null); // Turf ID for adding rule
@@ -101,7 +102,7 @@ const ManageRulesScreen = () => {
   };
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={theme}>
       {loading ? (
         <Loader />
       ) : (
@@ -165,6 +166,11 @@ const ManageRulesScreen = () => {
                         </DataTable.Cell>
                       </DataTable.Row>
                     ))}
+                    {paginatedRules.length === 0 && (
+                      <View style={{ padding: 20, alignItems: 'center' }}>
+                        <Text style={{ color: '#666', fontSize: 16 }}>No rules found</Text>
+                      </View>
+                    )}
 
                     <DataTable.Pagination
                       page={page}
@@ -176,13 +182,6 @@ const ManageRulesScreen = () => {
                         (page + 1) * rowsPerPage,
                         filteredRules.length
                       )} of ${filteredRules.length}`}
-                      numberOfItemsPerPage={rowsPerPage}
-                      onItemsPerPageChange={(rows) => {
-                        setRowsPerPage(rows);
-                        setPage(0);
-                      }}
-                      numberOfItemsPerPageList={rowsPerPageOptions}
-                      selectPageDropdownLabel="Rows per page"
                       showFastPaginationControls
                     />
                   </DataTable>

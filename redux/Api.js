@@ -1,8 +1,9 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import config from "../config";
 
 const Api = axios.create({
-  baseURL: "https://venue-backend-vigy.onrender.com/api/admin",
+  baseURL: config.API_URL,
   headers: {
     "Content-Type": "application/json",
   },

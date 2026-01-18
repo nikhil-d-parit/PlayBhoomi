@@ -25,6 +25,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import MCIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import { Image } from 'react-native';
 import Loader from "../components/Loader";
+import theme from "../theme";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchVendors, deleteVendor } from "../redux/slices/VenderSlice";
@@ -33,7 +34,7 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 
-const rowsPerPageOptions = [2, 3, 5];
+const rowsPerPageOptions = [5, 10];
 
 const ManageVendersScreen = () => {
   const dispatch = useDispatch();
@@ -41,7 +42,7 @@ const ManageVendersScreen = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(2);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
   // For delete confirmation dialog
@@ -127,7 +128,7 @@ const ManageVendersScreen = () => {
   );
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={theme}>
       {loading ? (
         <Loader />
       ) : (
@@ -219,6 +220,11 @@ const ManageVendersScreen = () => {
                         </DataTable.Cell>
                       </DataTable.Row>
                     ))}
+                    {paginatedVendors.length === 0 && (
+                      <View style={{ padding: 20, alignItems: 'center' }}>
+                        <Text style={{ color: '#666', fontSize: 16 }}>No vendors found</Text>
+                      </View>
+                    )}
 
                     <DataTable.Pagination
                       page={page}
@@ -230,10 +236,6 @@ const ManageVendersScreen = () => {
                         (page + 1) * rowsPerPage,
                         filteredVenders.length
                       )} of ${filteredVenders.length}`}
-                      numberOfItemsPerPage={rowsPerPage}
-                      onItemsPerPageChange={setRowsPerPage}
-                      numberOfItemsPerPageList={rowsPerPageOptions}
-                      selectPageDropdownLabel="Rows per page"
                       showFastPaginationControls
                     />
                   </DataTable>

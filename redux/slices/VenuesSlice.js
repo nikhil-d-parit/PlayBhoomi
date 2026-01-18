@@ -1,18 +1,21 @@
-// ✅ Async thunk to delete a venue (admin)
-export const deleteVenue = createAsyncThunk(
-  "venues/deleteVenue",
-  async ({ vendorId, turfId }, thunkAPI) => {
+// ✅ Async thunk to toggle venue status (active/inactive)
+export const toggleVenueStatus = createAsyncThunk(
+  "venues/toggleStatus",
+  async ({ vendorId, turfId, isSuspended }, thunkAPI) => {
     try {
-      const response = await Api.delete(`/vendors/${vendorId}/turfs/${turfId}`);
-      return { turfId, vendorId };
+      const response = await Api.patch(
+        `/turfs/${vendorId}/${turfId}/suspend`,
+        { isSuspended: isSuspended ? 1 : 0 }
+      );
+      return { turfId, turf: response.data.turf };
     } catch (error) {
+      console.error('❌ Toggle Status Error:', error.response?.data || error.message);
       const message =
-        error.response?.data?.message || error.message || "Failed to delete venue";
+        error.response?.data?.message || error.message || "Failed to update status";
       return thunkAPI.rejectWithValue(message);
     }
   }
 );
-// redux/slices/venuesSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import Api from "../Api";
 
@@ -44,7 +47,8 @@ export const addVenue = createAsyncThunk(
       return response.data;
     } catch (error) {
       const message =
-        error.response?.data?.message || "Failed to add venue";
+        error.response?.data?.message || error.message || "Failed to add venue";
+      console.error("Add Venue Error:", error.response?.data || error.message);
       return thunkAPI.rejectWithValue(message);
     }
   }
@@ -93,11 +97,27 @@ const venuesSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // Delete venue reducer
-      .addCase(deleteVenue.fulfilled, (state, action) => {
-        state.venues = state.venues.filter(v => v.turfId !== action.payload.turfId);
+      // Add venue reducers
+      .addCase(addVenue.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
-      .addCase(deleteVenue.rejected, (state, action) => {
+      .addCase(addVenue.fulfilled, (state, action) => {
+        state.loading = false;
+        // Add the new venue to the list
+        state.venues.push(action.payload);
+      })
+      .addCase(addVenue.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Toggle venue status reducer
+      .addCase(toggleVenueStatus.fulfilled, (state, action) => {
+        state.venues = state.venues.map(v => 
+          v.turfId === action.payload.turfId ? action.payload.turf : v
+        );
+      })
+      .addCase(toggleVenueStatus.rejected, (state, action) => {
         state.error = action.payload;
       })
       // Edit venue reducers
@@ -107,8 +127,10 @@ const venuesSlice = createSlice({
       })
       .addCase(editVenue.fulfilled, (state, action) => {
         state.editLoading = false;
-        // Optionally update venues list if needed
-        // state.venues = state.venues.map(v => v.id === action.payload.id ? action.payload : v);
+        // Update the venue in the list
+        state.venues = state.venues.map(v => 
+          v.turfId === action.payload.turfId ? action.payload : v
+        );
       })
       .addCase(editVenue.rejected, (state, action) => {
         state.editLoading = false;

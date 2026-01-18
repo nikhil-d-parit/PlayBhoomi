@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, View, Dimensions } from "react-native"
 import { TextInput, Text, Button, Card, Surface, Provider as PaperProvider, Menu } from "react-native-paper"
 
 const { width } = Dimensions.get("window")
+import theme from "../theme";
 
 const countries = ["USA", "Canada", "India", "UK", "Australia"]
 const statesByCountry = {
@@ -52,7 +53,7 @@ export default function AddUserScreen() {
   }
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={theme}>
       <ScrollView contentContainerStyle={styles.page}>
         <Card style={styles.card} mode="contained">
           <Card.Content>

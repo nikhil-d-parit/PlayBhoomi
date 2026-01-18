@@ -30,6 +30,7 @@ import { addVenue } from "../redux/slices/VenuesSlice";
 import { useFocusEffect } from "@react-navigation/native";
 const screenW = Dimensions.get("window").width;
 import Toast from "react-native-toast-message";
+import Api from "../redux/Api";
 
 const times = [
   "06:00",
@@ -126,16 +127,13 @@ const AddVenue = () => {
     ],
     amenities: [],
     rules: [],
-    images: [
-      // sample placeholders so preview shows up — remove if you want blank initially
-      "https://example.com/turf1.jpg",
-      "https://example.com/turf2.jpg",
-    ],
+    images: [],
     cancellationHours: "24",
     featured: 1,
   });
 
   const [modal, setModal] = useState({ type: "", sportIndex: null });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -256,6 +254,8 @@ const AddVenue = () => {
     if (!form.address.trim()) errors.address = "Address is required";
     if (!form.cancellationHours || isNaN(Number(form.cancellationHours)))
       errors.cancellationHours = "Valid cancellation hours required";
+    if (!form.images || form.images.length === 0)
+      errors.images = "At least one image is required";
     if (!form.sports.length) {
       errors.sports = "At least one sport is required";
     } else {
@@ -280,42 +280,113 @@ const AddVenue = () => {
     return errors;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
     const errors = validateForm();
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) {
-      alert("Please fix the errors in the form.");
+      Toast.show({
+        type: "error",
+        text1: "Validation Error",
+        text2: "Please fix the errors in the form",
+        position: "top",
+        visibilityTime: 3000,
+      });
+      setIsSubmitting(false);
       return;
     }
-    const payload = {
-      vendorId: form.vendorId,
-      title: form.title,
-      address: form.address,
-      description: form.description,
-      sports: form.sports.map((s) => ({
-        name: s.name,
-        slotPrice: Number(s.slotPrice) || 0,
-        discountedPrice: Number(s.discountedPrice) || 0,
-        weekendPrice: Number(s.weekendPrice) || 0,
-        timeSlots: s.timeSlots.map((t) => ({ open: t.open, close: t.close })),
-        courts: s.courts,
-      })),
-      amenities: form.amenities,
-      rules: form.rules,
-      images: form.images,
-      cancellationHours: Number(form.cancellationHours) || 0,
-      featured: Number(form.featured) || 0,
-    };
-    console.log(JSON.stringify(payload, null, 2));
+
+    // Show uploading toast
+    Toast.show({
+      type: "info",
+      text1: "Uploading Images...",
+      text2: "Please wait while we upload your images",
+      position: "top",
+      visibilityTime: 2000,
+    });
+
     try {
-      dispatch(addVenue({ venueData: payload, vendorId: payload.vendorId }));
+      // Upload images to Cloudinary first
+      const uploadedImageUrls = [];
+      for (const imageUri of form.images) {
+        try {
+          const response = await Api.post("/upload", { image: imageUri });
+          uploadedImageUrls.push(response.data.secure_url);
+        } catch (uploadError) {
+          console.error("Image upload error:", uploadError);
+          Toast.show({
+            type: "error",
+            text1: "Image Upload Failed",
+            text2: "Failed to upload one or more images",
+            position: "top",
+            visibilityTime: 4000,
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Show creating turf toast
       Toast.show({
-        type: "success",
-        text1: "Turf added successfully!",
+        type: "info",
+        text1: "Creating Turf...",
+        text2: "Saving your turf details",
+        position: "top",
+        visibilityTime: 2000,
       });
-      navigation.goBack();
+
+      const payload = {
+        vendorId: form.vendorId,
+        title: form.title,
+        address: form.address,
+        description: form.description,
+        sports: form.sports.map((s) => ({
+          name: s.name,
+          slotPrice: Number(s.slotPrice) || 0,
+          discountedPrice: Number(s.discountedPrice) || 0,
+          weekendPrice: Number(s.weekendPrice) || 0,
+          timeSlots: s.timeSlots.map((t) => ({ open: t.open, close: t.close })),
+          courts: s.courts,
+        })),
+        amenities: form.amenities,
+        rules: form.rules,
+        images: uploadedImageUrls, // Use Cloudinary URLs instead of base64
+        cancellationHours: Number(form.cancellationHours) || 0,
+        featured: Number(form.featured) || 0,
+      };
+
+      const result = await dispatch(addVenue({ venueData: payload, vendorId: payload.vendorId }));
+      
+      if (addVenue.fulfilled.match(result)) {
+        Toast.show({
+          type: "success",
+          text1: "Turf Added Successfully! ✅",
+          text2: `${form.title} has been added`,
+          position: "top",
+          visibilityTime: 3000,
+        });
+        setIsSubmitting(false);
+        navigation.goBack();
+      } else if (addVenue.rejected.match(result)) {
+        Toast.show({
+          type: "error",
+          text1: "Failed to Add Turf",
+          text2: result.payload || "Please try again",
+          position: "top",
+          visibilityTime: 4000,
+        });
+        setIsSubmitting(false);
+      }
     } catch (error) {
       console.log(error);
+      Toast.show({
+        type: "error",
+        text1: "Unexpected Error",
+        text2: error.message || "Please try again",
+        position: "top",
+        visibilityTime: 4000,
+      });
+      setIsSubmitting(false);
     }
   };
 
@@ -515,7 +586,7 @@ const AddVenue = () => {
 
       {/* IMAGES */}
       <Surface style={styles.card}>
-        <Text style={styles.cardTitle}>Images</Text>
+        <Text style={styles.cardTitle}>Images *</Text>
         <Text style={styles.smallMuted}>Add venue images (gallery)</Text>
         <View
           style={{ flexDirection: "row", marginTop: 12, alignItems: "center" }}
@@ -524,6 +595,11 @@ const AddVenue = () => {
             Pick images
           </Button>
         </View>
+        {formErrors.images && (
+          <Text style={{ color: "red", marginTop: 6 }}>
+            {formErrors.images}
+          </Text>
+        )}
 
         <ScrollView
           horizontal
@@ -613,8 +689,14 @@ const AddVenue = () => {
         </View>
       </Surface>
 
-      <Button mode="contained" onPress={handleSubmit} style={styles.submitBtn}>
-        Submit
+      <Button 
+        mode="contained" 
+        onPress={handleSubmit} 
+        style={styles.submitBtn}
+        loading={isSubmitting}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "Submitting..." : "Submit"}
       </Button>
 
       {/* ===== MODALS ===== */}
@@ -701,6 +783,7 @@ const AddVenue = () => {
           </Surface>
         </View>
       </Modal>
+      <Toast />
     </ScrollView>
   );
 };

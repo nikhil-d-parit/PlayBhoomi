@@ -20,15 +20,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchAmenities, deleteAmenity } from "../redux/slices/AmenitiesSlice";
 import Loader from "../components/Loader";
 import Toast from "react-native-toast-message";
+import theme from "../theme";
 
-const rowsPerPageOptions = [2, 3, 5];
+const rowsPerPageOptions = [5, 10];
 
 const ManageAminitiesScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(2);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   
 
   // Fetch amenities from the Redux store
@@ -62,7 +63,7 @@ const ManageAminitiesScreen = () => {
   );
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={theme}>
       {loading ? (
         <Loader /> // This is displayed while loading
       ) : (
@@ -129,6 +130,11 @@ const ManageAminitiesScreen = () => {
                         </DataTable.Cell>
                       </DataTable.Row>
                     ))}
+                    {paginatedAmenities.length === 0 && (
+                      <View style={{ padding: 20, alignItems: 'center' }}>
+                        <Text style={{ color: '#666', fontSize: 16 }}>No amenities found</Text>
+                      </View>
+                    )}
 
                     {/* Pagination */}
                     <DataTable.Pagination
@@ -141,10 +147,6 @@ const ManageAminitiesScreen = () => {
                         (page + 1) * rowsPerPage,
                         filteredAmenities.length
                       )} of ${filteredAmenities.length}`}
-                      numberOfItemsPerPage={rowsPerPage}
-                      onItemsPerPageChange={setRowsPerPage}
-                      numberOfItemsPerPageList={rowsPerPageOptions}
-                      selectPageDropdownLabel="Rows per page"
                       showFastPaginationControls
                     />
                   </DataTable>

@@ -16,6 +16,7 @@ import {
 } from "react-native-paper"
 import Icon from "react-native-vector-icons/MaterialIcons"
 import { useNavigation } from "@react-navigation/native" // Assuming @react-navigation/native is installed
+import theme from "../theme";
 
 const usersData = [
   {
@@ -52,12 +53,12 @@ const usersData = [
   },
 ]
 
-const rowsPerPageOptions = [2, 3, 5]
+const rowsPerPageOptions = [5, 10]
 
 const UserDatailsScreen = () => {
   const [searchText, setSearchText] = useState("")
   const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(2)
+  const [rowsPerPage, setRowsPerPage] = useState(5)
   const { width } = useWindowDimensions()
   const isTablet = width >= 768 // This variable is not directly used in the new layout but kept for context
 
@@ -85,7 +86,7 @@ const UserDatailsScreen = () => {
   }
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={theme}>
       <ScrollView contentContainerStyle={styles.page}>
         {/* Personal Details Card */}
         <Card style={styles.personalDetailsCard} mode="contained">
@@ -154,6 +155,11 @@ const UserDatailsScreen = () => {
                     <DataTable.Cell style={styles.cell}>{user.createdAt}</DataTable.Cell>
                   </DataTable.Row>
                 ))}
+                {paginatedUsers.length === 0 && (
+                  <View style={{ padding: 20, alignItems: 'center' }}>
+                    <Text style={{ color: '#666', fontSize: 16 }}>No booking history found</Text>
+                  </View>
+                )}
                 <DataTable.Pagination
                   page={page}
                   numberOfPages={Math.ceil(filteredUsers.length / rowsPerPage)}
@@ -162,10 +168,6 @@ const UserDatailsScreen = () => {
                     (page + 1) * rowsPerPage,
                     filteredUsers.length,
                   )} of ${filteredUsers.length}`}
-                  numberOfItemsPerPage={rowsPerPage}
-                  onItemsPerPageChange={setRowsPerPage}
-                  numberOfItemsPerPageList={rowsPerPageOptions}
-                  selectPageDropdownLabel="Rows per page"
                   showFastPaginationControls
                 />
               </DataTable>

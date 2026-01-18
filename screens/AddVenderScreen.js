@@ -11,6 +11,8 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { addVendor, resetVendorState } from "../redux/slices/VenderSlice";
 import { useNavigation } from "@react-navigation/native";
+import theme from "../theme";
+import Toast from "react-native-toast-message";
 
 export default function AddVendorScreen() {
   const navigation = useNavigation();
@@ -69,17 +71,46 @@ export default function AddVendorScreen() {
       );
 
       if (addVendor.fulfilled.match(result)) {
+        // Show success toast
+        Toast.show({
+          type: "success",
+          text1: "Vendor Added Successfully! ✅",
+          text2: `${firstName} has been added to the system`,
+          position: "top",
+          visibilityTime: 3000,
+        });
+
+        // Navigate back to vendors list
         navigation.navigate("Main", {
-          screen: "Manage Vendors",
+          screen: "Manage vendors",
+        });
+      } else if (addVendor.rejected.match(result)) {
+        // Show specific backend error
+        const errorMessage = result.payload?.message || result.error?.message || "Failed to add vendor";
+        
+        Toast.show({
+          type: "error",
+          text1: "Failed to Add Vendor",
+          text2: errorMessage,
+          position: "top",
+          visibilityTime: 4000,
         });
       }
     } catch (error) {
       console.log("Unexpected error:", error);
+      // Show error toast for unexpected errors
+      Toast.show({
+        type: "error",
+        text1: "Unexpected Error",
+        text2: error.message || "Please try again",
+        position: "top",
+        visibilityTime: 4000,
+      });
     }
   };
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={theme}>
       <ScrollView contentContainerStyle={styles.page}>
         <Card style={styles.card}>
           <Card.Content>
@@ -164,6 +195,7 @@ export default function AddVendorScreen() {
           </Card.Content>
         </Card>
       </ScrollView>
+      <Toast />
     </PaperProvider>
   );
 }

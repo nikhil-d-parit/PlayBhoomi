@@ -12,6 +12,7 @@ import {
 import { useDispatch } from "react-redux";
 import { editVendor, fetchVendors } from "../redux/slices/VenderSlice";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import theme from "../theme";
 
 export default function EditVendorScreen() {
   const dispatch = useDispatch();
@@ -68,7 +69,7 @@ export default function EditVendorScreen() {
   };
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={theme}>
       <ScrollView contentContainerStyle={styles.page}>
         <Card style={styles.card}>
           <Card.Content>
