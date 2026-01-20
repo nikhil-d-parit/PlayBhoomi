@@ -49,6 +49,7 @@ import EditAmenityScreen from "./screens/EditAmenityScreen";
 import AddRuleScreen from "./screens/AddRuleScreen";
 import EditRuleScreen from "./screens/EditRuleScreen";
 import EditVenueScreen from "./screens/EditVenueScreen";
+import ManageNotificationsScreen from "./screens/ManageNotificationsScreen";
 import theme from "./theme";
 
 const PlaceholderScreen = ({ title }) => (
@@ -140,6 +141,7 @@ const MainDrawer = () => (
     <Drawer.Screen name="Manage vendors" component={ManageVendersScreen}/>
     <Drawer.Screen name="Manage Turf" component={ManageVenuesScreen} />
     <Drawer.Screen name="Manage Bookings" component={ManageBookingsScreen}/>
+    <Drawer.Screen name="Manage Notifications" component={ManageNotificationsScreen}/>
     <Drawer.Screen name="Manage Aminities" component={ManageAminitiesScreen}/>
     <Drawer.Screen name="Manage Rules" component={ManageRulesScreen}/>
   </Drawer.Navigator>

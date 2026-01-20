@@ -169,23 +169,31 @@ export const editVendor = createAsyncThunk(
     }
   }
 );
-export const deleteVendor = createAsyncThunk(
-  "vender/deleteVendor",
-  async (id, thunkAPI) => {
+
+// ✅ Update Vendor Status (Active/Inactive)
+export const updateVendorStatus = createAsyncThunk(
+  "vender/updateVendorStatus",
+  async ({ vendorId, status }, thunkAPI) => {
     try {
-      const response = await Api.delete(`/vendors/${id}`);
+      const response = await Api.put(`/vendors/${vendorId}/status`, { status });
       Toast.show({
         type: "success",
-        text1: response.data?.message || "Vendor deleted successfully",
+        text1: `Vendor marked as ${status}`,
       });
-      return response.data;
+      return { vendorId, status };
     } catch (err) {
+      Toast.show({
+        type: "error",
+        text1: "Failed to update vendor status",
+        text2: err.response?.data?.message || err.message,
+      });
       return thunkAPI.rejectWithValue(
-        err.response?.data?.message || err.message || "Delete failed"
+        err.response?.data?.message || err.message || "Status update failed"
       );
     }
   }
 );
+
 
 export const fetchVendorById = createAsyncThunk(
   "vender/fetchVendorById",
@@ -268,21 +276,22 @@ const venderSlice = createSlice({
         state.error = action.payload || "Something went wrong";
         state.success = false;
       })
-      .addCase(deleteVendor.pending, (state) => {
+      // 👉 Update Vendor Status
+      .addCase(updateVendorStatus.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.success = false;
       })
-      .addCase(deleteVendor.fulfilled, (state, action) => {
+      .addCase(updateVendorStatus.fulfilled, (state, action) => {
         state.loading = false;
-        state.success = true;
-        const deletedId = action.meta.arg; // id passed to thunk
-        state.vendors = state.vendors.filter((v) => v.id !== deletedId);
+        const { vendorId, status } = action.payload;
+        const vendor = state.vendors.find((v) => v.id === vendorId);
+        if (vendor) {
+          vendor.status = status;
+        }
       })
-      .addCase(deleteVendor.rejected, (state, action) => {
+      .addCase(updateVendorStatus.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Delete failed";
-        state.success = false;
+        state.error = action.payload || "Status update failed";
       })
       .addCase(fetchVendorById.pending, (state) => {
         state.loading = true;

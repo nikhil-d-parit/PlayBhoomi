@@ -28,7 +28,7 @@ import Loader from "../components/Loader";
 import theme from "../theme";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchVendors, deleteVendor } from "../redux/slices/VenderSlice";
+import { fetchVendors, updateVendorStatus } from "../redux/slices/VenderSlice";
 import * as XLSX from 'xlsx';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -45,17 +45,10 @@ const ManageVendersScreen = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
-  // For delete confirmation dialog
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState(null);
-
-  // Delete handler for dialog
-  const handleDelete = () => {
-    if (selectedVendor) {
-      dispatch(deleteVendor(selectedVendor.id));
-    }
-    setDeleteModalVisible(false);
-    setSelectedVendor(null);
+  // For status toggle
+  const handleToggleStatus = (vendor) => {
+    const newStatus = vendor.status === 'Active' ? 'Inactive' : 'Active';
+    dispatch(updateVendorStatus({ vendorId: vendor.id, status: newStatus }));
   };
 
   // Export to Excel handler
@@ -201,7 +194,7 @@ const ManageVendersScreen = () => {
                           {page * rowsPerPage + index + 1}
                         </DataTable.Cell>
                         <DataTable.Cell style={styles.cell}>
-                          <GreenActionMenu vender={vender} setDeleteModalVisible={setDeleteModalVisible} setSelectedVendor={setSelectedVendor} />
+                          <GreenActionMenu vender={vender} handleToggleStatus={handleToggleStatus} />
                         </DataTable.Cell>
                         <DataTable.Cell style={styles.cell}>
                           {vender.name}
@@ -220,7 +213,7 @@ const ManageVendersScreen = () => {
                         </DataTable.Cell>
                       </DataTable.Row>
                     ))}
-                    {paginatedVendors.length === 0 && (
+                    {paginatedVenders.length === 0 && (
                       <View style={{ padding: 20, alignItems: 'center' }}>
                         <Text style={{ color: '#666', fontSize: 16 }}>No vendors found</Text>
                       </View>
@@ -244,24 +237,7 @@ const ManageVendersScreen = () => {
             </Card>
           </ScrollView>
 
-          {/* Delete Confirmation Dialog */}
-          <Portal>
-            <Dialog
-              visible={deleteModalVisible}
-              onDismiss={() => setDeleteModalVisible(false)}
-            >
-              <Dialog.Title>Confirm Deletion</Dialog.Title>
-              <Dialog.Content>
-                <Text>Are you sure you want to delete this vendor?</Text>
-              </Dialog.Content>
-              <Dialog.Actions>
-                <Button onPress={() => setDeleteModalVisible(false)}>Cancel</Button>
-                <Button onPress={handleDelete} color="red">
-                  Delete
-                </Button>
-              </Dialog.Actions>
-            </Dialog>
-          </Portal>
+
 
           <Surface style={styles.footer}>
             <Text style={styles.footerText}>COPYRIGHT © KRIDA</Text>
@@ -273,9 +249,10 @@ const ManageVendersScreen = () => {
 };
 
 // Removed duplicate GreenActionMenu declaration
-const GreenActionMenu = ({ vender, setDeleteModalVisible, setSelectedVendor }) => {
+const GreenActionMenu = ({ vender, handleToggleStatus }) => {
   const [visible, setVisible] = useState(false);
   const navigation = useNavigation();
+  const isActive = vender.status === 'Active' || !vender.status;
 
   return (
     <Menu
@@ -313,11 +290,10 @@ const GreenActionMenu = ({ vender, setDeleteModalVisible, setSelectedVendor }) =
       <Menu.Item
         onPress={() => {
           setVisible(false);
-          setSelectedVendor(vender);
-          setDeleteModalVisible(true);
+          handleToggleStatus(vender);
         }}
-        title="Delete"
-        leadingIcon="delete"
+        title={isActive ? "Mark as Inactive" : "Mark as Active"}
+        leadingIcon={isActive ? "close-circle" : "check-circle"}
       />
       <Divider />
     </Menu>
