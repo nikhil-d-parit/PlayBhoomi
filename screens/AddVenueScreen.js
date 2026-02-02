@@ -70,6 +70,10 @@ const times = [
 
 const sportsOptions = ["Football", "Cricket", "Badminton", "Tennis"];
 const courtOptions = ["Court A", "Court B", "Court C", "Pitch 1", "Pitch 2"];
+const slotDurationOptions = [
+  { label: "1 Hour", value: 60 },
+  { label: "1.5 Hours", value: 90 },
+];
 
 const CustomPicker = ({ selectedValue, onValueChange, items, placeholder }) => {
   return (
@@ -121,7 +125,9 @@ const AddVenue = () => {
         slotPrice: "",
         discountedPrice: "",
         weekendPrice: "",
-        timeSlots: [{ open: "", close: "" }],
+        slotDuration: 60, // Default to 60 minutes (1 hour)
+        weekdayTimeSlots: [{ open: "", close: "" }], // Weekday timings (Mon-Fri)
+        weekendTimeSlots: [{ open: "", close: "" }], // Weekend timings (Sat-Sun)
         courts: [],
       },
     ],
@@ -163,7 +169,9 @@ const AddVenue = () => {
           slotPrice: "",
           discountedPrice: "",
           weekendPrice: "",
-          timeSlots: [{ open: "", close: "" }],
+          slotDuration: 60, // Default to 60 minutes
+          weekdayTimeSlots: [{ open: "", close: "" }],
+          weekendTimeSlots: [{ open: "", close: "" }],
           courts: [],
         },
       ],
@@ -176,25 +184,39 @@ const AddVenue = () => {
     }));
   };
 
-  const addTimeSlot = (sportIdx) => {
+  // slotType: 'weekdayTimeSlots' or 'weekendTimeSlots'
+  const addTimeSlot = (sportIdx, slotType = 'weekdayTimeSlots') => {
     setForm((prev) => {
       const sp = prev.sports.map((s, i) =>
         i === sportIdx
-          ? { ...s, timeSlots: [...s.timeSlots, { open: "", close: "" }] }
+          ? { ...s, [slotType]: [...(s[slotType] || []), { open: "", close: "" }] }
           : s
       );
       return { ...prev, sports: sp };
     });
   };
 
-  const updateTimeSlot = (sportIdx, slotIdx, key, value) => {
+  // slotType: 'weekdayTimeSlots' or 'weekendTimeSlots'
+  const updateTimeSlot = (sportIdx, slotIdx, key, value, slotType = 'weekdayTimeSlots') => {
     setForm((prev) => {
       const sp = prev.sports.map((s, i) => {
         if (i !== sportIdx) return s;
-        const ts = s.timeSlots.map((t, j) =>
+        const ts = (s[slotType] || []).map((t, j) =>
           j === slotIdx ? { ...t, [key]: value } : t
         );
-        return { ...s, timeSlots: ts };
+        return { ...s, [slotType]: ts };
+      });
+      return { ...prev, sports: sp };
+    });
+  };
+
+  const removeTimeSlot = (sportIdx, slotIdx, slotType) => {
+    setForm((prev) => {
+      const sp = prev.sports.map((s, i) => {
+        if (i !== sportIdx) return s;
+        const ts = (s[slotType] || []).filter((_, j) => j !== slotIdx);
+        // Keep at least one slot
+        return { ...s, [slotType]: ts.length > 0 ? ts : [{ open: "", close: "" }] };
       });
       return { ...prev, sports: sp };
     });
@@ -268,12 +290,19 @@ const AddVenue = () => {
             "Valid discounted price required";
         if (!sport.weekendPrice || isNaN(Number(sport.weekendPrice)))
           errors[`sport_${idx}_weekendPrice`] = "Valid weekend price required";
-        sport.timeSlots.forEach((slot, tIdx) => {
+        // Validate weekday time slots
+        (sport.weekdayTimeSlots || []).forEach((slot, tIdx) => {
           if (!slot.open || !slot.close) {
-            errors[`sport_${idx}_timeSlot_${tIdx}`] =
-              "Open and close times are required";
+            errors[`sport_${idx}_weekdayTimeSlot_${tIdx}`] =
+              "Weekday open and close times are required";
           }
-          // Optionally, add more validation for time format if needed
+        });
+        // Validate weekend time slots
+        (sport.weekendTimeSlots || []).forEach((slot, tIdx) => {
+          if (!slot.open || !slot.close) {
+            errors[`sport_${idx}_weekendTimeSlot_${tIdx}`] =
+              "Weekend open and close times are required";
+          }
         });
       });
     }
@@ -345,7 +374,11 @@ const AddVenue = () => {
           slotPrice: Number(s.slotPrice) || 0,
           discountedPrice: Number(s.discountedPrice) || 0,
           weekendPrice: Number(s.weekendPrice) || 0,
-          timeSlots: s.timeSlots.map((t) => ({ open: t.open, close: t.close })),
+          slotDuration: Number(s.slotDuration) || 60,
+          weekdayTimeSlots: (s.weekdayTimeSlots || []).map((t) => ({ open: t.open, close: t.close })),
+          weekendTimeSlots: (s.weekendTimeSlots || []).map((t) => ({ open: t.open, close: t.close })),
+          // Keep timeSlots for backward compatibility (use weekday as default)
+          timeSlots: (s.weekdayTimeSlots || []).map((t) => ({ open: t.open, close: t.close })),
           courts: s.courts,
         })),
         amenities: form.amenities,
@@ -523,40 +556,105 @@ const AddVenue = () => {
             </View>
           </View>
 
-          <Text style={styles.subLabel}>Time slots</Text>
-          {sport.timeSlots.map((slot, ti) => (
-            <View key={ti}>
-              <CustomPicker
-                selectedValue={slot.open}
-                onValueChange={(v) => updateTimeSlot(si, ti, "open", v)}
-                items={times}
-                placeholder="Open"
-              />
-              {formErrors[`sport_${si}_timeSlot_${ti}`] && (
-                <Text style={{ color: "red", marginBottom: 6 }}>
-                  {formErrors[`sport_${si}_timeSlot_${ti}`]}
-                </Text>
-              )}
-              <CustomPicker
-                selectedValue={slot.close}
-                onValueChange={(v) => updateTimeSlot(si, ti, "close", v)}
-                items={times}
-                placeholder="Close"
-              />
-              {formErrors[`sport_${si}_timeSlot_${ti}`] && (
-                <Text style={{ color: "red", marginBottom: 6 }}>
-                  {formErrors[`sport_${si}_timeSlot_${ti}`]}
-                </Text>
-              )}
-            </View>
-          ))}
-          <Button
-            onPress={() => addTimeSlot(si)}
-            compact
-            style={styles.smallBtn}
-          >
-            + Add time slot
-          </Button>
+          <Text style={styles.subLabel}>Slot Duration</Text>
+          <CustomPicker
+            selectedValue={sport.slotDuration || 60}
+            onValueChange={(v) => updateSportField(si, "slotDuration", v)}
+            items={slotDurationOptions}
+            placeholder="Select Duration"
+          />
+
+          {/* Weekday Time Slots (Mon-Fri) */}
+          <View style={styles.timeSlotsSection}>
+            <Text style={styles.subLabel}>Weekday Timings (Mon-Fri)</Text>
+            {(sport.weekdayTimeSlots || [{ open: "", close: "" }]).map((slot, ti) => (
+              <View key={ti} style={styles.timeSlotRow}>
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <CustomPicker
+                    selectedValue={slot.open}
+                    onValueChange={(v) => updateTimeSlot(si, ti, "open", v, 'weekdayTimeSlots')}
+                    items={times}
+                    placeholder="Open"
+                  />
+                </View>
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <CustomPicker
+                    selectedValue={slot.close}
+                    onValueChange={(v) => updateTimeSlot(si, ti, "close", v, 'weekdayTimeSlots')}
+                    items={times}
+                    placeholder="Close"
+                  />
+                </View>
+                {(sport.weekdayTimeSlots || []).length > 1 && (
+                  <IconButton
+                    icon="close-circle"
+                    iconColor="red"
+                    size={20}
+                    onPress={() => removeTimeSlot(si, ti, 'weekdayTimeSlots')}
+                    style={{ margin: 0 }}
+                  />
+                )}
+              </View>
+            ))}
+            {formErrors[`sport_${si}_weekdayTimeSlot_0`] && (
+              <Text style={{ color: "red", marginBottom: 6 }}>
+                {formErrors[`sport_${si}_weekdayTimeSlot_0`]}
+              </Text>
+            )}
+            <Button
+              onPress={() => addTimeSlot(si, 'weekdayTimeSlots')}
+              compact
+              style={styles.smallBtn}
+            >
+              + Add weekday slot
+            </Button>
+          </View>
+
+          {/* Weekend Time Slots (Sat-Sun) */}
+          <View style={styles.timeSlotsSection}>
+            <Text style={styles.subLabel}>Weekend Timings (Sat-Sun)</Text>
+            {(sport.weekendTimeSlots || [{ open: "", close: "" }]).map((slot, ti) => (
+              <View key={ti} style={styles.timeSlotRow}>
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <CustomPicker
+                    selectedValue={slot.open}
+                    onValueChange={(v) => updateTimeSlot(si, ti, "open", v, 'weekendTimeSlots')}
+                    items={times}
+                    placeholder="Open"
+                  />
+                </View>
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <CustomPicker
+                    selectedValue={slot.close}
+                    onValueChange={(v) => updateTimeSlot(si, ti, "close", v, 'weekendTimeSlots')}
+                    items={times}
+                    placeholder="Close"
+                  />
+                </View>
+                {(sport.weekendTimeSlots || []).length > 1 && (
+                  <IconButton
+                    icon="close-circle"
+                    iconColor="red"
+                    size={20}
+                    onPress={() => removeTimeSlot(si, ti, 'weekendTimeSlots')}
+                    style={{ margin: 0 }}
+                  />
+                )}
+              </View>
+            ))}
+            {formErrors[`sport_${si}_weekendTimeSlot_0`] && (
+              <Text style={{ color: "red", marginBottom: 6 }}>
+                {formErrors[`sport_${si}_weekendTimeSlot_0`]}
+              </Text>
+            )}
+            <Button
+              onPress={() => addTimeSlot(si, 'weekendTimeSlots')}
+              compact
+              style={styles.smallBtn}
+            >
+              + Add weekend slot
+            </Button>
+          </View>
 
           <View style={{ marginTop: 12 }}>
             <Button
@@ -893,6 +991,19 @@ const styles = StyleSheet.create({
     borderBottomColor: "#e5e7eb",
   },
   submitBtn: { marginTop: 8, marginBottom: 24 },
+  timeSlotsSection: {
+    backgroundColor: "#f9fafb",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  timeSlotRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
 });
 
 export default AddVenue;
