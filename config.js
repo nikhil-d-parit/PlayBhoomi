@@ -6,7 +6,7 @@
 const getEnvVars = () => {
   // Default to local development
   return {
-    API_URL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api/admin',
+    API_URL: process.env.EXPO_PUBLIC_API_URL  || 'http://localhost:5000/api/admin',
   };
 };
 

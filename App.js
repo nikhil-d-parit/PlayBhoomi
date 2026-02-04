@@ -22,6 +22,8 @@ import Store from "./redux/Store";
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
+import Api from './redux/Api';
+import { createNavigationContainerRef } from '@react-navigation/native';
 
 /**********************
  *   SCREENS        *
@@ -60,6 +62,8 @@ const PlaceholderScreen = ({ title }) => (
     <Text variant="headlineMedium">{title}</Text>
   </SafeAreaView>
 );
+
+export const navigationRef = createNavigationContainerRef();
 
 /**********************
  *  DRAWER CONTENT    *
@@ -172,9 +176,39 @@ function AppInner() {
     checkToken();
   }, []);
 
+  useEffect(() => {
+    const interceptor = Api.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const status = error.response?.status;
+        if (status === 401) {
+          try {
+            await AsyncStorage.removeItem('userToken');
+          } catch (e) {
+            // ignore
+          }
+          try {
+            dispatch(logout());
+          } catch (e) {
+            // fallback
+            dispatch({ type: 'auth/logout' });
+          }
+          if (navigationRef.isReady()) {
+            navigationRef.reset({ index: 0, routes: [{ name: 'Login' }] });
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      Api.interceptors.response.eject(interceptor);
+    };
+  }, [dispatch]);
+
   return (
     <PaperProvider theme={theme}>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           initialRouteName={initialRoute}
           screenOptions={{ headerShown: false, cardStyle: { flex: 1 } }}
