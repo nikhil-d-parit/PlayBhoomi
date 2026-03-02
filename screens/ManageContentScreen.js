@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://playbhoomi-backend.onrender.com/api/admin';
 
 const ManageContentScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('help'); // 'help' or 'terms'
