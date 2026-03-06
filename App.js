@@ -53,6 +53,7 @@ import EditRuleScreen from "./screens/EditRuleScreen";
 import EditVenueScreen from "./screens/EditVenueScreen";
 import ManageNotificationsScreen from "./screens/ManageNotificationsScreen";
 import ManageContentScreen from "./screens/ManageContentScreen";
+import SettingsScreen from "./screens/SettingsScreen";
 import theme from "./theme";
 
 const PlaceholderScreen = ({ title }) => (
@@ -111,6 +112,7 @@ const CustomDrawerContent = (props) => {
           ["Manage Aminities", "wrench"],
           ["Manage Rules", "scale-balance"],
           ["Manage Content", "file-document-edit"],
+          ["App Settings", "cog"],
         ].map(([label, icon]) => (
           <PaperDrawer.Item
             key={label}
@@ -151,6 +153,7 @@ const MainDrawer = () => (
     <Drawer.Screen name="Manage Aminities" component={ManageAminitiesScreen}/>
     <Drawer.Screen name="Manage Rules" component={ManageRulesScreen}/>
     <Drawer.Screen name="Manage Content" component={ManageContentScreen}/>
+    <Drawer.Screen name="App Settings" component={SettingsScreen}/>
   </Drawer.Navigator>
 );
 

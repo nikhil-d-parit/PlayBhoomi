@@ -84,10 +84,10 @@ const EditVenueScreen = () => {
     if (venue) {
       // Map API response fields to form fields
       return {
-        vendorId: vendorId || venue.vendorName || venue.vendorId || "",
+        vendorId: vendorId || venue.vendorId || "",
         title: venue.title || "",
-        address: venue.location?.address || "",
-        city: venue.location?.city || "",
+        address: venue.address || venue.location?.address || "",
+        city: venue.city || venue.location?.city || "",
         description: venue.description || "",
         phone: venue.phone || "",
         courtsCount: venue.courtsCount || 0,
