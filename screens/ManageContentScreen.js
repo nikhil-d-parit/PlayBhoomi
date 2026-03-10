@@ -53,10 +53,10 @@ const ManageContentScreen = ({ navigation }) => {
       const token = await AsyncStorage.getItem('userToken');
 
       const [helpRes, termsRes] = await Promise.all([
-        axios.get(`${API_URL}/admin/content/help-support`, {
+        axios.get(`${API_URL}/content/help-support`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get(`${API_URL}/admin/content/terms-conditions`, {
+        axios.get(`${API_URL}/content/terms-conditions`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -77,7 +77,7 @@ const ManageContentScreen = ({ navigation }) => {
       const token = await AsyncStorage.getItem('userToken');
 
       await axios.put(
-        `${API_URL}/admin/content/help-support`,
+        `${API_URL}/content/help-support`,
         helpContent,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -97,7 +97,7 @@ const ManageContentScreen = ({ navigation }) => {
       const token = await AsyncStorage.getItem('userToken');
 
       await axios.put(
-        `${API_URL}/admin/content/terms-conditions`,
+        `${API_URL}/content/terms-conditions`,
         termsContent,
         { headers: { Authorization: `Bearer ${token}` } }
       );

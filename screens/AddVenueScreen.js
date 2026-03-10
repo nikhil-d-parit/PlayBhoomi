@@ -290,6 +290,8 @@ const AddVenue = () => {
             "Valid discounted price required";
         if (!sport.weekendPrice || isNaN(Number(sport.weekendPrice)))
           errors[`sport_${idx}_weekendPrice`] = "Valid weekend price required";
+        if (!sport.courts || sport.courts.length === 0)
+          errors[`sport_${idx}_courts`] = "Select at least one court";
         // Validate weekday time slots
         (sport.weekdayTimeSlots || []).forEach((slot, tIdx) => {
           if (!slot.open || !slot.close) {
@@ -674,6 +676,9 @@ const AddVenue = () => {
                 <Text style={styles.smallMuted}>No courts selected</Text>
               )}
             </View>
+            {formErrors[`sport_${si}_courts`] && (
+              <Text style={{ color: "red", marginBottom: 6 }}>{formErrors[`sport_${si}_courts`]}</Text>
+            )}
           </View>
         </Surface>
       ))}

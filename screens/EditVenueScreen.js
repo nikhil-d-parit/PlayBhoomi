@@ -93,7 +93,7 @@ const EditVenueScreen = () => {
         courtsCount: venue.courtsCount || 0,
         openTime: venue.openTime || "",
         closeTime: venue.closeTime || "",
-        images: venue.thumbnail ? [venue.thumbnail] : [],
+        images: venue.images || (venue.thumbnail ? [venue.thumbnail] : []),
         // Default values for fields not present in response
         sports: (venue.sports || []).map(s => ({
           ...s,
@@ -111,8 +111,8 @@ const EditVenueScreen = () => {
             courts: [],
           },
         ],
-        amenities: venue.amenities || [],
-        rules: venue.rules || [],
+        amenities: (venue.amenities || []).map(a => typeof a === 'string' ? a : a.id),
+        rules: (venue.rules || []).map(r => typeof r === 'string' ? r : r.id),
         cancellationHours: venue.cancellationHours?.toString() || "24",
         featured: venue.featured || 0,
       };
@@ -407,6 +407,8 @@ const EditVenueScreen = () => {
           errors[`sport_${idx}_discountedPrice`] = "Valid discounted price required";
         if (!sport.weekendPrice || isNaN(Number(sport.weekendPrice)))
           errors[`sport_${idx}_weekendPrice`] = "Valid weekend price required";
+        if (!sport.courts || sport.courts.length === 0)
+          errors[`sport_${idx}_courts`] = "Select at least one court";
         // Validate weekday time slots
         (sport.weekdayTimeSlots || []).forEach((slot, tIdx) => {
           if (!slot.open || !slot.close) {
@@ -426,13 +428,32 @@ const EditVenueScreen = () => {
     return errors;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const errors = validateForm();
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) {
       alert("Please fix the errors in the form.");
       return;
     }
+
+    // Upload any new (non-Cloudinary) images before submitting
+    let finalImages = [];
+    for (const uri of form.images) {
+      if (uri.startsWith('http')) {
+        // Already a remote URL — keep as-is
+        finalImages.push(uri);
+      } else {
+        // Local file URI — upload to Cloudinary
+        try {
+          const response = await Api.post('/upload', { image: uri });
+          finalImages.push(response.data.secure_url);
+        } catch {
+          Toast.show({ type: 'error', text1: 'Image upload failed', position: 'top' });
+          return;
+        }
+      }
+    }
+
     const payload = {
       title: form.title,
       address: form.address,
@@ -445,13 +466,12 @@ const EditVenueScreen = () => {
         slotDuration: Number(s.slotDuration) || 60,
         weekdayTimeSlots: (s.weekdayTimeSlots || []).map((t) => ({ open: t.open, close: t.close })),
         weekendTimeSlots: (s.weekendTimeSlots || []).map((t) => ({ open: t.open, close: t.close })),
-        // Keep timeSlots for backward compatibility (use weekday as default)
         timeSlots: (s.weekdayTimeSlots || []).map((t) => ({ open: t.open, close: t.close })),
         courts: s.courts,
       })),
       amenities: form.amenities,
       rules: form.rules,
-      images: form.images,
+      images: finalImages,
       cancellationHours: Number(form.cancellationHours) || 0,
       featured: Number(form.featured) || 0,
     };
@@ -689,6 +709,9 @@ const EditVenueScreen = () => {
                 <Text style={styles.smallMuted}>No courts selected</Text>
               )}
             </View>
+            {formErrors[`sport_${si}_courts`] && (
+              <Text style={{ color: "red", marginBottom: 6 }}>{formErrors[`sport_${si}_courts`]}</Text>
+            )}
           </View>
         </Surface>
       ))}

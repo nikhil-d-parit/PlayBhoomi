@@ -334,7 +334,11 @@ const GreenActionMenu = ({ venue }) => {
         <Menu.Item
           onPress={() => {
             setVisible(false);
-            navigation.navigate("Venue Details");
+            navigation.navigate("Edit Turf", {
+              vendorId,
+              turfId: venue.turfId,
+              venue,
+            });
           }}
           title="View"
           leadingIcon="eye"
