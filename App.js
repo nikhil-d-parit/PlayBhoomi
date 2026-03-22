@@ -109,7 +109,7 @@ const CustomDrawerContent = (props) => {
           ["Manage Turf", "stadium"],
           ["Manage vendors", "storefront"],
           ["Manage Bookings", "calendar-clock"],
-          ["Manage Aminities", "wrench"],
+          ["Manage Amenities", "wrench"],
           ["Manage Rules", "scale-balance"],
           ["Manage Content", "file-document-edit"],
           ["App Settings", "cog"],
@@ -150,7 +150,7 @@ const MainDrawer = () => (
     <Drawer.Screen name="Manage Turf" component={ManageVenuesScreen} />
     <Drawer.Screen name="Manage Bookings" component={ManageBookingsScreen}/>
     <Drawer.Screen name="Manage Notifications" component={ManageNotificationsScreen}/>
-    <Drawer.Screen name="Manage Aminities" component={ManageAminitiesScreen}/>
+    <Drawer.Screen name="Manage Amenities" component={ManageAminitiesScreen}/>
     <Drawer.Screen name="Manage Rules" component={ManageRulesScreen}/>
     <Drawer.Screen name="Manage Content" component={ManageContentScreen}/>
     <Drawer.Screen name="App Settings" component={SettingsScreen}/>
