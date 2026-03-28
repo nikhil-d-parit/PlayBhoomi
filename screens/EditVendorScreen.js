@@ -119,7 +119,8 @@ export default function EditVendorScreen() {
               </View>
               <View style={{ width: "48%" }}>
                 <TextInput
-                  label="GPS Url"
+                  label="GPS URL or Lat,Lng"
+                  placeholder="22.7532, 75.8937 or Google Maps URL"
                   value={gpsUrl}
                   onChangeText={setgpsUrl}
                   mode="outlined"
