@@ -32,41 +32,12 @@ const screenW = Dimensions.get("window").width;
 import Toast from "react-native-toast-message";
 import Api from "../redux/Api";
 
-const times = [
-  "06:00",
-  "06:30",
-  "07:00",
-  "07:30",
-  "08:00",
-  "08:30",
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "12:30",
-  "13:00",
-  "13:30",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-  "17:00",
-  "17:30",
-  "18:00",
-  "18:30",
-  "19:00",
-  "19:30",
-  "20:00",
-  "20:30",
-  "21:00",
-  "21:30",
-  "22:00",
-];
+// Generate 30-min interval time slots from 00:00 to 23:30
+const times = Array.from({ length: 48 }, (_, i) => {
+  const h = String(Math.floor(i / 2)).padStart(2, "0");
+  const m = i % 2 === 0 ? "00" : "30";
+  return `${h}:${m}`;
+});
 
 const sportsOptions = ["Football", "Cricket", "Badminton", "Tennis"];
 const courtOptions = ["Court A", "Court B", "Court C", "Pitch 1", "Pitch 2"];
