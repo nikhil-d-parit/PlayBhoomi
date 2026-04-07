@@ -15,7 +15,7 @@ const SettingsScreen = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await Api.get("/admin/settings");
+        const res = await Api.get("/settings");
         setTaxRate(String(res.data.taxRate ?? 0));
         setConvenienceFee(String(res.data.convenienceFee ?? 35));
         setDiscountRate(String(res.data.discountRate ?? 10));
@@ -40,7 +40,7 @@ const SettingsScreen = () => {
 
     setSaving(true);
     try {
-      await Api.put("/admin/settings", {
+      await Api.put("/settings", {
         taxRate: tax,
         convenienceFee: fee,
         discountRate: discount,

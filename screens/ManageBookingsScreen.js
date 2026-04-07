@@ -170,7 +170,7 @@ const ManageBookingsScreen = () => {
                     </View>
                   ) : (
                     paginatedBookings.map((item, index) => (
-                    <DataTable.Row key={item.id} style={styles.row}>
+                    <DataTable.Row key={item.id || item.bookingId || index} style={styles.row}>
                       <DataTable.Cell style={styles.cell}>
                         {page * rowsPerPage + index + 1}
                       </DataTable.Cell>
