@@ -20,6 +20,7 @@ export default function AddVendorScreen() {
   const [location, setLocation] = useState("");
   const [mobile, setMobile] = useState("");
   const [gpsUrl, setgpsUrl] = useState("");
+  const [password, setPassword] = useState("");
 
   // error states
   const [errors, setErrors] = useState({});
@@ -33,6 +34,7 @@ export default function AddVendorScreen() {
       setLocation("");
       setMobile("");
       setgpsUrl("");
+      setPassword("");
     }
     return () => {
       dispatch(resetVendorState());
@@ -52,6 +54,11 @@ export default function AddVendorScreen() {
       newErrors.mobile = "Enter a valid 10-digit mobile number";
     }
     if (!gpsUrl.trim()) newErrors.gpsUrl = "Gps Url is required";
+    if (!password.trim()) {
+      newErrors.password = "Password is required";
+    } else if (password.trim().length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0; // valid if no errors
   };
@@ -65,8 +72,8 @@ export default function AddVendorScreen() {
           firstName,
           location,
           mobile,
-          location,
-          gpsUrl
+          gpsUrl,
+          password,
         })
       );
 
@@ -174,6 +181,30 @@ export default function AddVendorScreen() {
                 )}
               </View>
             </View>
+
+            <View style={styles.formRow}>
+              <View style={{ width: "48%" }}>
+                <TextInput
+                  label="Vendor Password"
+                  placeholder="Min 6 characters"
+                  value={password}
+                  onChangeText={setPassword}
+                  mode="outlined"
+                  style={styles.input}
+                  secureTextEntry
+                  error={!!errors.password}
+                />
+                {errors.password && (
+                  <HelperText type="error">{errors.password}</HelperText>
+                )}
+              </View>
+              <View style={{ width: "48%" }}>
+                <HelperText type="info" style={{ marginTop: 8 }}>
+                  Vendor will login with their phone number and this password
+                </HelperText>
+              </View>
+            </View>
+
             <View style={styles.buttonContainer}>
               <Button
                 mode="outlined"

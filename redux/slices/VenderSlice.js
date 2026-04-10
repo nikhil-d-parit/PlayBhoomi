@@ -86,15 +86,17 @@ export const addVendor = createAsyncThunk(
       const {
         firstName: name,
         location,
-        mobile:phone,
-        gpsUrl, 
+        mobile: phone,
+        gpsUrl,
+        password,
       } = formData;
 
       const payload = {
         name,
         location,
         phone,
-        gpsUrl, 
+        gpsUrl,
+        password,
       };
 
       console.log("payload:", payload);
@@ -140,12 +142,12 @@ export const editVendor = createAsyncThunk(
   "vender/editVendor",
   async ({ id, formData }, thunkAPI) => {
     try {
-      // Accepts: { firstName, location, mobile, gpsUrl }
       const {
         firstName: name,
         location,
         mobile: phone,
         gpsUrl,
+        password,
       } = formData;
 
       const payload = {
@@ -153,6 +155,7 @@ export const editVendor = createAsyncThunk(
         location,
         phone,
         gpsUrl,
+        ...(password && { password }),
       };
       console.log("Edit Vendor payload:", payload);
 
