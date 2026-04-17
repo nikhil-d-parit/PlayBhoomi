@@ -98,7 +98,7 @@ const CustomDrawerContent = (props) => {
           style={{ backgroundColor: "transparent" }}
         />
         <Text style={{ color: "white", marginTop: 8 }} variant="titleMedium">
-          KRIDA ADMIN
+          PLAYBHOOMI ADMIN
         </Text>
       </View>
 

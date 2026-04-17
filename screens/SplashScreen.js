@@ -33,7 +33,7 @@ export default SplashScreen = () => {
     >
       <FontAwesome5 name="futbol" size={80} color="#fff" />
       <Text variant="headlineMedium" style={{ marginTop: 12, color: "white" }}>
-        KRIDA ADMIN
+        PLAYBHOOMI ADMIN
       </Text>
     </View>
   );

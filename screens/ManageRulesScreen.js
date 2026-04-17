@@ -192,7 +192,7 @@ const ManageRulesScreen = () => {
 
           {/* Footer */}
           <Surface style={styles.footer}>
-            <Text style={styles.footerText}>COPYRIGHT © KRIDA</Text>
+            <Text style={styles.footerText}>COPYRIGHT © PLAYBHOOMI</Text>
           </Surface>
 
           {/* Modal for adding/updating rules */}

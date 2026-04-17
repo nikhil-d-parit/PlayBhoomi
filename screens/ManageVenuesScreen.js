@@ -268,7 +268,7 @@ const ManageVenuesScreen = () => {
       </ScrollView>
 
       <Surface style={styles.footer}>
-        <Text style={styles.footerText}>COPYRIGHT © KRIDA</Text>
+        <Text style={styles.footerText}>COPYRIGHT © PLAYBHOOMI</Text>
       </Surface>
     </PaperProvider>
   );

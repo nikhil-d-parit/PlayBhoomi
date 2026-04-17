@@ -213,7 +213,7 @@ return (
 
       <View style={{ paddingVertical: 12, alignItems: "center", backgroundColor: "#388e3c", borderBottomLeftRadius: 16, borderBottomRightRadius: 16 }}>
         <Text style={{ color: "white", fontWeight: "bold", letterSpacing: 1 }} variant="bodySmall">
-          COPYRIGHT © KRIDA
+          COPYRIGHT © PLAYBHOOMI
         </Text>
       </View>
     </SafeAreaView>
