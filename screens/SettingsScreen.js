@@ -18,7 +18,7 @@ const SettingsScreen = () => {
         const res = await Api.get("/settings");
         setTaxRate(String(res.data.taxRate ?? 0));
         setConvenienceFee(String(res.data.convenienceFee ?? 35));
-        setDiscountRate(String(res.data.discountRate ?? 10));
+        setDiscountRate(String(res.data.discountRate ?? 0));
       } catch (err) {
         Toast.show({ type: "error", text1: "Failed to load settings", position: "bottom" });
       } finally {

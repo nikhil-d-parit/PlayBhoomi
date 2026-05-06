@@ -38,7 +38,7 @@ const times = Array.from({ length: 48 }, (_, i) => {
   const m = i % 2 === 0 ? "00" : "30";
   return `${h}:${m}`;
 });
-const sportsOptions = ["Football", "Cricket", "Badminton", "Tennis"];
+const sportsOptions = ["Football", "Cricket", "Badminton", "Tennis", "Pickleball"];
 const courtOptions = ["Court A", "Court B", "Court C", "Pitch 1", "Pitch 2"];
 const slotDurationOptions = [
   { label: "1 Hour", value: 60 },

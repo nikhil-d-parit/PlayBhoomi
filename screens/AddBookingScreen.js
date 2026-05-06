@@ -164,7 +164,11 @@ const AddBookingScreen = () => {
           onDismiss={() => setDropdowns({ ...dropdowns, sport: false })}
           value={form.sport}
           setValue={value => handleChange('sport', value)}
-          options={[{ label: 'Football', value: 'Football' }, { label: 'Cricket', value: 'Cricket' }]}
+          options={[
+            { label: 'Football', value: 'Football' },
+            { label: 'Cricket', value: 'Cricket' },
+            { label: 'Pickleball', value: 'Pickleball' },
+          ]}
           inputProps={{ style: styles.input }}
         />
       </View>
